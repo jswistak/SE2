@@ -8,9 +8,8 @@ class Aircraft(models.Model):
     aircraft_capacity = models.IntegerField()
     aircraft_range = models.IntegerField()
     aircraft_speed = models.IntegerField()
-    aircraft_cost = models.IntegerField()
+    aircraft_cost_per_hour = models.IntegerField()
     aircraft_fuel = models.IntegerField()
-    aircraft_fuel_cost = models.IntegerField()
 
     def __str__(self):
         return self.aircraft_id
