@@ -17,9 +17,7 @@ from django.contrib import admin
 from django.urls import include, path
 from rest_framework import routers
 from aircraft_booking.backend import views
-from rest_framework_swagger.views import get_swagger_view
 
-schema_view = get_swagger_view(title='Aircraft Booking API')
 
 router = routers.DefaultRouter()
 router.register(r'users', views.UserViewSet)
@@ -30,5 +28,5 @@ urlpatterns = [
     path('', include(router.urls)),
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls')),
-    # path('swagger/', schema_view),
+
 ]
