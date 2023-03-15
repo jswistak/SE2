@@ -39,7 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'rest_framework',
-    # TODO: 'aircraft_booking.backend.apps.BackendConfig',
+
+    'backend.apps.BackendConfig',
 ]
 
 MIDDLEWARE = [
