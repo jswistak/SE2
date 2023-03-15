@@ -29,4 +29,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls')),
 
+
+    path('status/', views.status, name='status'),
+
 ]

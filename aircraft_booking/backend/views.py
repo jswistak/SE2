@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User, Group
+from django.http import JsonResponse
 from rest_framework import viewsets
 from backend.serializers import UserSerializer, GroupSerializer
 
@@ -19,3 +20,7 @@ class GroupViewSet(viewsets.ModelViewSet):
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
     # ermission_classes = [permissions.IsAuthenticated]
+
+
+def status(request):
+    return JsonResponse({'status': 'OK'})
