@@ -1,9 +1,10 @@
 from django.contrib.auth.models import User, Group
 from django.http import JsonResponse
-from rest_framework import viewsets
-from backend.serializers import UserSerializer, GroupSerializer, AircraftSerializer
-from rest_framework.permissions import IsAuthenticated
+from rest_framework import viewsets, generics
+from backend.serializers import UserSerializer, GroupSerializer, AircraftSerializer, RegisterSerializer
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from backend.models import Aircraft
+
 
 class UserViewSet(viewsets.ModelViewSet):
     """
@@ -14,6 +15,15 @@ class UserViewSet(viewsets.ModelViewSet):
     # permission_classes = [permissions.IsAuthenticated]
 
 
+class RegisterView(generics.CreateAPIView):
+    """
+    API endpoint for user registration
+    """
+    queryset = User.objects.all()
+    permission_classes = [AllowAny]
+    serializer_class = RegisterSerializer
+
+
 class GroupViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows groups to be viewed or edited.
@@ -22,19 +32,20 @@ class GroupViewSet(viewsets.ModelViewSet):
     serializer_class = GroupSerializer
     # ermission_classes = [permissions.IsAuthenticated]
 
+
 class AircraftViewSet(viewsets.ModelViewSet):
     queryset = Aircraft.objects.all()
     serializer_class = AircraftSerializer
 
-    #Required for authentication
+    # Required for authentication
     permission_classes = [IsAuthenticated]
+
     def get_queryset(self):
         queryset = Aircraft.objects.all()
         aircraft_type = self.request.query_params.get('aircraft_type', None)
         if aircraft_type is not None:
             queryset = queryset.filter(aircraft_type=aircraft_type)
         return queryset
-
 
 
 def status(request):
