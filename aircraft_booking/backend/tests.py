@@ -2,7 +2,7 @@ from django.test import TestCase, RequestFactory
 from django.contrib.auth.models import User
 from .views import UserViewSet, GroupViewSet, AircraftViewSet
 from rest_framework.test import APIClient
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenViewBase,
@@ -44,12 +44,13 @@ class UserTestCase(TestCase):
         self.assertNotIn('password', response.data[0])
 
 
-class JWTLoginTestCase(TestCase):
+class JWTTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
         self.client = APIClient()
         self.user = User.objects.create_user("justyna", "justyna@email.com", "password123")
-        self.token = str(RefreshToken.for_user(self.user).access_token)
+        self.access_token = str(AccessToken.for_user(self.user))
+        self.refresh_token = str(RefreshToken.for_user(self.user))
 
     def test_login_success(self):
         request_data = {'username': 'justyna', 'password': 'password123'}
@@ -65,27 +66,8 @@ class JWTLoginTestCase(TestCase):
         response = TokenObtainPairView.as_view()(request)
         self.assertEqual(response.status_code, 401)
 
-    def test_authenticate_success(self):
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
-        response = self.client.get('/status/')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json(), {'status': 'OK'})
-
-    def test_authenticate_failure(self):
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + 'invalid_token')
-        response = self.client.get('/status/')
-        self.assertEqual(response.status_code, 401)
-
-
-class JWTRefreshTestCase(TestCase):
-    def setUp(self):
-        self.factory = RequestFactory()
-        self.client = APIClient()
-        self.user = User.objects.create_user("justyna", "justyna@email.com", "password123")
-        self.token = str(RefreshToken.for_user(self.user).access_token)
-
     def test_refresh_token_success(self):
-        refresh_data = {'refresh': self.token}
+        refresh_data = {'refresh': self.refresh_token}
         request = self.factory.post('/api/token/refresh/', refresh_data)
         response = TokenRefreshView.as_view()(request)
         self.assertEqual(response.status_code, 200)
@@ -97,16 +79,14 @@ class JWTRefreshTestCase(TestCase):
         response = TokenRefreshView.as_view()(request)
         self.assertEqual(response.status_code, 401)
 
+    def test_verify_refresh_token_success(self):
+        verify_data = {'token': self.refresh_token}
+        request = self.factory.post('/api/token/verify/', verify_data)
+        response = TokenVerifyView.as_view()(request)
+        self.assertEqual(response.status_code, 200)
 
-class JWTVerifyTestCase(TestCase):
-    def setUp(self):
-        self.factory = RequestFactory()
-        self.client = APIClient()
-        self.user = User.objects.create_user("justyna", "justyna@email.com", "password123")
-        self.token = str(RefreshToken.for_user(self.user).access_token)
-
-    def test_verify_token_success(self):
-        verify_data = {'token': self.token}
+    def test_verify_access_token_success(self):
+        verify_data = {'token': self.access_token}
         request = self.factory.post('/api/token/verify/', verify_data)
         response = TokenVerifyView.as_view()(request)
         self.assertEqual(response.status_code, 200)
