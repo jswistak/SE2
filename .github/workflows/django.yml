@@ -27,4 +27,4 @@ jobs:
         pip install -r aircraft_booking/requirements.txt
     - name: Run Tests
       run: |
-        python aircraft_booking/manage.py test
+        python aircraft_booking/manage.py test aircraft_booking

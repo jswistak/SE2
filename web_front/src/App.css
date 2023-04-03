@@ -1,38 +1,206 @@
-.App {
-  text-align: center;
+iframe {
+  display: none;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+:root {
+  /*colors*/
+  --color-font: #000;
+  --color-bg: #000;
+  --color-accent1: #fff;
+  --color-accent2: #59a0e2;
+  --color-accent2-dark: #4d4d4d;
+  /*dimensions*/
+  --navbar-height: 80px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+@font-face {
+  font-family: CooperBlackRegular;
+  src: url("./resources/fonts/Cooper-Black-Regular.ttf");
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+@font-face {
+  font-family: ProfileProRegular;
+  src: url("./resources/fonts/ProfilePro-Regular.ttf");
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: CooperBlackRegular, sans-serif;
+}
+
+header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background: var(--color-bg);
+  padding: 0 100px;
   display: flex;
-  flex-direction: column;
+  justify-content: flex-end;
   align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  transition: 1s;
 }
 
-.App-link {
-  color: #61dafb;
+header .hero {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: 1s;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+header .logo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 15vw;
+  color: var(--color-accent1);
+  text-decoration: none;
+  font-weight: 700;
+  z-index: 1;
+  transition: 1s;
+}
+
+header.sticky {
+  height: var(--navbar-height);
+}
+
+header.sticky .logo {
+  position: absolute;
+  font-size: 2em;
+  left: 100px;
+  transform: translate(0, -50%);
+}
+
+header.sticky .hero {
+  opacity: 0.5;
+  object-position: 80%;
+}
+
+body {
+  min-height: 1000px;
+}
+
+nav {
+  position: absolute;
+  display: flex;
+  z-index: 1;
+}
+
+nav ul {
+  position: relative;
+  display: flex;
+  transition: 0.25s;
+  transform: translateX(100px);
+  opacity: 0;
+}
+
+header.sticky nav ul {
+  transform: translateX(0);
+  opacity: 1;
+  transition-delay: 0.75s;
+}
+
+nav ul li {
+  list-style: none;
+}
+
+nav ul li a {
+  color: var(--color-accent1);
+  display: block;
+  padding: 10px 15px;
+  font-size: 1.2em;
+  text-decoration: none;
+}
+
+nav ul li a:hover {
+  color: var(--color-accent2);
+}
+
+section {
+  margin-top: 50vh;
+  padding: 100px;
+  top: calc(var(--navbar-height) + 10vh);
+  position: relative;
+  z-index: -1;
+}
+
+section h2 {
+  font-size: 3em;
+}
+
+section p {
+  padding-top: 30px;
+  font-size: 1.2em;
+}
+
+@media (max-width: 991px) {
+  section,
+  header {
+    padding: 40px;
   }
-  to {
-    transform: rotate(360deg);
+
+  section h2 {
+    font-size: 2em;
+  }
+
+  header.sticky .logo {
+    left: 40px;
+  }
+
+  header.sticky .hero {
+    opacity: 0;
+  }
+
+  nav ul {
+    display: none;
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  header.sticky .toggle {
+    position: fixed;
+    top: 15px;
+    right: 40px;
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
+    /* background: var(--color-accent1) url(./resources/icon-set/icon-menu.svg); */
+    background: url(./resources/icon-set/icon-menu.svg);
+    background-size: 30px;
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+
+  header.sticky .toggle.active {
+    background: url(./resources/icon-set/icon-close.svg);
+    background-size: 30px;
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+
+  nav.active ul {
+    position: fixed;
+    top: var(--navbar-height);
+    left: 0;
+    width: 100%;
+    height: calc(100% - var(--navbar-height));
+    background: var(--color-bg);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    opacity: 1;
+    visibility: visible;
+  }
+
+  nav ul li a {
+    font-size: 1.5em;
   }
 }
