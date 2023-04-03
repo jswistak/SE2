@@ -1,7 +1,8 @@
 from django.test import TestCase, RequestFactory
 from django.contrib.auth.models import User
 from rest_framework.test import APIRequestFactory
-from .views import UserViewSet, GroupViewSet, AircraftViewSet
+from rest_framework.test import APIClient
+from .views import UserViewSet, RegisterView, GroupViewSet, AircraftViewSet
 
 
 class UserTestCase(TestCase):
@@ -35,3 +36,91 @@ class UserTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(User.objects.count(), 1)
         self.assertNotIn('password', response.data[0])
+
+
+class RegistrationTestCase(TestCase):
+
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.client = APIClient()
+        # self.user = User.objects.create_user("justyna", "justyna@email.com", "password123")
+        # self.access_token = str(AccessToken.for_user(self.user))
+        # self.refresh_token = str(RefreshToken.for_user(self.user))
+
+    def test_registration_success(self):
+        data = {"username": "justyna",
+                "email": "justyna@email.com",
+                "password": "password123!23",
+                "first_name": "Justyna",
+                "last_name": "Pokora"
+                }
+        request = self.factory.post('/api/register/', data)
+        response = RegisterView.as_view()(request)
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.data, {"username": "justyna", "email": "justyna@email.com",
+                                         "first_name": "Justyna", "last_name": "Pokora"})
+
+    def test_registration_invalid_email(self):
+        data = {"username": "justyna",
+                "email": "email",
+                "password": "password123!23",
+                "first_name": "Justyna",
+                "last_name": "Pokora"
+                }
+        request = self.factory.post('/api/register/', data)
+        response = RegisterView.as_view()(request)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("email", response.data)
+
+    def test_registration_invalid_password_too_short(self):
+        data = {"username": "justyna",
+                "email": "justyna@email.com",
+                "password": "123",
+                "first_name": "Justyna",
+                "last_name": "Pokora"
+                }
+        request = self.factory.post('/api/register/', data)
+        response = RegisterView.as_view()(request)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("password", response.data)
+
+    def test_registration_invalid_password_common(self):
+        data = {"username": "justyna",
+                "email": "justyna@email.com",
+                "password": "password",
+                "first_name": "Justyna",
+                "last_name": "Pokora"
+                }
+        request = self.factory.post('/api/register/', data)
+        response = RegisterView.as_view()(request)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("password", response.data)
+
+    def test_registration_username_already_exists(self):
+        User.objects.create_user("justyna", "justyna@email.com", "password123!23")
+        data = {"username": "justyna",
+                "email": "justyna2@email.com",
+                "password": "password123!23",
+                "first_name": "Justyna",
+                "last_name": "Pokora"
+                }
+        request = self.factory.post('/api/register/', data)
+        response = RegisterView.as_view()(request)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("username", response.data)
+        self.assertIn("A user with that username already exists.", str(response.data))
+
+    def test_registration_email_already_exists(self):
+        User.objects.create_user("justyna", "justyna@email.com", "password123!23")
+        data = {"username": "justyna2",
+                "email": "justyna@email.com",
+                "password": "password123!23",
+                "first_name": "Justyna",
+                "last_name": "Pokora"
+                }
+        request = self.factory.post('/api/register/', data)
+        response = RegisterView.as_view()(request)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("email", response.data)
+        self.assertIn("This field must be unique.", str(response.data))
+
