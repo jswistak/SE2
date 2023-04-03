@@ -42,10 +42,6 @@ class RegistrationTestCase(TestCase):
 
     def setUp(self):
         self.factory = RequestFactory()
-        self.client = APIClient()
-        # self.user = User.objects.create_user("justyna", "justyna@email.com", "password123")
-        # self.access_token = str(AccessToken.for_user(self.user))
-        # self.refresh_token = str(RefreshToken.for_user(self.user))
 
     def test_registration_success(self):
         data = {"username": "justyna",
@@ -123,4 +119,3 @@ class RegistrationTestCase(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertIn("email", response.data)
         self.assertIn("This field must be unique.", str(response.data))
-
