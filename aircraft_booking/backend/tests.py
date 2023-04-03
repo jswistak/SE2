@@ -2,7 +2,8 @@ from django.test import TestCase, RequestFactory
 from django.contrib.auth.models import User
 from rest_framework.test import APIRequestFactory
 from rest_framework.test import APIClient
-from .views import UserViewSet, RegisterView, GroupViewSet, AircraftViewSet
+from .views import UserViewSet, RegisterView, GroupViewSet, AircraftViewSet, status
+import json
 
 
 class UserTestCase(TestCase):
@@ -119,3 +120,12 @@ class RegistrationTestCase(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertIn("email", response.data)
         self.assertIn("This field must be unique.", str(response.data))
+
+
+class StatusTestCase(TestCase):
+
+    def test_status_endpoint(self):
+        request = self.client.get('/status/')
+        response = status(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(json.loads(response.content), {"status": "OK"})
