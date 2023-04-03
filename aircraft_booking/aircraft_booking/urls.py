@@ -29,6 +29,7 @@ router.register(r'users', views.UserViewSet)
 router.register(r'groups', views.GroupViewSet)
 router.register(r'aircraft', views.AircraftViewSet)
 
+
 urlpatterns = [
     path('', include(router.urls)),
     path('admin/', admin.site.urls),
@@ -38,8 +39,8 @@ urlpatterns = [
     path('api/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
-    path('api/token/test/', TokenViewBase.as_view(), name='token_verify'),
-
+    #path('api/token/test/', TokenViewBase.as_view(), name='token_verify'),
+    path('api/register/', views.RegisterView.as_view(), name='register'),
     path('status/', views.status, name='status'),
 
 ]

@@ -1,3 +1,8 @@
 from django.contrib import admin
+from .models import Aircraft, Certificate, Staff, Booking
 
-# Register your models here.
+admin.site.register(Aircraft)
+admin.site.register(Certificate)
+admin.site.register(Staff)
+admin.site.register(Booking)
+
