@@ -203,6 +203,8 @@ class AircraftTestCase(TestCase):
         request = self.factory.get('/aircraft/')
         response = AircraftViewSet.as_view({'get': 'list'})(request)
         self.assertEqual(response.status_code, 401)
+
+    # TODO: just admin can create new aircraft
     def test_aircraft_create(self):
         request_data = {'aircraft_id': 'SP-KOG',
                 'aircraft_name': 'name', 'aircraft_type': "C182", 'aircraft_capacity': 4, 'aircraft_range': 1000,
@@ -237,3 +239,17 @@ class AircraftTestCase(TestCase):
         response = AircraftViewSet.as_view({'get': 'retrieve'})(request, pk='SP-KOS')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['aircraft_id'], 'SP-KOS')
+
+    def test_aircraft_modify(self):
+        request_data = {'aircraft_id': 'SP-KOS',
+                        'aircraft_name': 'name', 'aircraft_type': "C152", 'aircraft_capacity': 4,
+                        'aircraft_range': 1000,
+                        'aircraft_speed': 100, 'aircraft_fuel': 100, 'aircraft_status': 'available',
+                        'aircraft_cost_per_hour': 1000, 'aircraft_fuel_cost': 10}
+        request = self.factory.put('/SP-KOS/', data=request_data, content_type='application/json')
+        force_authenticate(request, user=self.user)
+        response = AircraftViewSet.as_view({'put': 'update'})(request, pk='SP-KOS')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['aircraft_id'], 'SP-KOS')
+        self.assertEqual(response.data['aircraft_type'], 'C152')
+
