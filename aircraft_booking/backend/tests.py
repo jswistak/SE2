@@ -249,7 +249,9 @@ class AircraftTestCase(TestCase):
         request = self.factory.put('/SP-KOS/', data=request_data, content_type='application/json')
         force_authenticate(request, user=self.user)
         response = AircraftViewSet.as_view({'put': 'update'})(request, pk='SP-KOS')
+
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['aircraft_id'], 'SP-KOS')
-        self.assertEqual(response.data['aircraft_type'], 'C152')
+        data = json.loads(response.content.decode())
+        self.assertEqual(data['aircraft_id'], 'SP-KOS')
+        self.assertEqual(data['aircraft_type'], 'C152')
 
