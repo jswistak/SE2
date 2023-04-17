@@ -83,6 +83,9 @@ function Header(props) {
             <li>
               <a href="#">Contact</a>
             </li>
+            <li>
+              <a href="Login">Login</a>
+            </li>
           </ul>
         </nav>
       </header>
