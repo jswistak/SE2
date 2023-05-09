@@ -94,7 +94,7 @@ class BookingViewSet(viewsets.ModelViewSet):
         end_time = self.request.query_params.get('end_time', None)
         if start_time and end_time:
             queryset = queryset.filter(
-                Q(start_time__gte=start_time) & Q(end_time__lte=end_time)
+                Q(start_time__lte=end_time) & Q(end_time__gte=start_time)
             )
         elif start_time:
             queryset = queryset.filter(start_time__gte=start_time)
@@ -102,14 +102,117 @@ class BookingViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(end_time__lte=end_time)
         return queryset
 
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        if not self.request.user.is_staff:
+            if serializer.validated_data['pilot'] != self.request.user:
+                return JsonResponse(status=401, data={'status': 'false', 'message': 'Not authenticated.'})
+
+        queryset = Booking.objects.all()
+
+        try:
+            start_time = serializer.validated_data['start_time']
+        except KeyError:
+            start_time = None
+        try:
+            end_time = serializer.validated_data['end_time']
+        except KeyError:
+            end_time = None
+        if start_time and end_time:
+            queryset = queryset.filter(
+                Q(start_time__lte=end_time) & Q(end_time__gte=start_time)
+            )
+        elif start_time:
+            queryset = queryset.filter(start_time__gte=start_time)
+        elif end_time:
+            queryset = queryset.filter(end_time__lte=end_time)
+
+        try:
+            aircraft = serializer.validated_data['aircraft']
+        except KeyError:
+            aircraft = None
+        queryset_aircraft = None
+        if aircraft is not None:
+            queryset_aircraft = queryset.filter(aircraft=aircraft)
+
+        try:
+            pilot = serializer.validated_data['pilot']
+        except KeyError:
+            pilot = None
+        queryset_pilot = None
+        if pilot is not None:
+            queryset_pilot = queryset.filter(pilot=pilot)
+
+        try:
+            instructor = serializer.validated_data['instructor']
+        except KeyError:
+            instructor = None
+        queryset_instructor = None
+        if instructor is not None:
+            queryset_instructor = queryset.filter(instructor=instructor)
+
+        if queryset_aircraft or queryset_pilot or queryset_instructor:
+            return JsonResponse(status=400, data={'status': 'false', 'message': 'Booking overlap.'})
+
+        self.perform_create(serializer)
+        return JsonResponse(serializer.data)
+
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
+
+        queryset = Booking.objects.all()
+
+        try:
+            start_time = serializer.validated_data['start_time']
+        except KeyError:
+            start_time = None
+        try:
+            end_time = serializer.validated_data['end_time']
+        except KeyError:
+            end_time = None
+        if start_time and end_time:
+            queryset = queryset.filter(
+                Q(start_time__lte=end_time) & Q(end_time__gte=start_time)
+            )
+        elif start_time:
+            queryset = queryset.filter(start_time__gte=start_time)
+        elif end_time:
+            queryset = queryset.filter(end_time__lte=end_time)
+
+        try:
+            aircraft = serializer.validated_data['aircraft']
+        except KeyError:
+            aircraft = None
+        queryset_aircraft = None
+        if aircraft is not None:
+            queryset_aircraft = queryset.filter(aircraft=aircraft)
+
+        try:
+            pilot = serializer.validated_data['pilot']
+        except KeyError:
+            pilot = None
+        queryset_pilot = None
+        if pilot is not None:
+            queryset_pilot = queryset.filter(pilot=pilot)
+
+        try:
+            instructor = serializer.validated_data['instructor']
+        except KeyError:
+            instructor = None
+        queryset_instructor = None
+        if instructor is not None:
+            queryset_instructor = queryset.filter(instructor=instructor)
+
+        if queryset_aircraft or queryset_pilot or queryset_instructor:
+            return JsonResponse(status=400, data={'status': 'false', 'message': 'Booking overlap.'})
+
         self.perform_update(serializer)
         return JsonResponse(serializer.data)
-
 
 
 def status(request):

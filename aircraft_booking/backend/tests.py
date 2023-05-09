@@ -198,6 +198,7 @@ class BookingTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
         self.client = APIClient()
+
         staff_user1 = User.objects.create_user(username='staff_user1', password='password1')
         staff_user2 = User.objects.create_user(username='staff_user2', password='password2')
         certificate = Certificate.objects.create(certificate_name='cert1')
@@ -215,10 +216,11 @@ class BookingTestCase(TestCase):
 
         self.pilot_user1 = User.objects.create_user("user1", "user1@email.com", "password1")
         self.pilot_user2 = User.objects.create_user("user2", "user2@email.com", "password2")
+
         self.booking1 = Booking.objects.create(aircraft=self.aircraft1, pilot=self.pilot_user1, instructor=self.staff1,
                                                start_time=datetime(2023, 4, 18, 10, 30),
                                                end_time=datetime(2023, 4, 18, 20, 30))
-        self.booking2 = Booking.objects.create(aircraft=self.aircraft2, pilot=self.pilot_user2, instructor=self.staff2,
+        self.booking2 = Booking.objects.create(aircraft=self.aircraft2, pilot=self.pilot_user2,
                                                start_time=datetime(2023, 4, 20, 10, 30),
                                                end_time=datetime(2023, 4, 20, 20, 30))
 
@@ -277,6 +279,21 @@ class BookingTestCase(TestCase):
         response = BookingViewSet.as_view({'put': 'update'})(request, pk=self.booking1.pk)
         self.assertEqual(response.status_code, 400)
 
+    def test_modify_booking_pilot_unauthorized_failed(self):
+        time_str = '2023-04-23T10:00:00'
+        time1 = datetime.strptime(time_str, '%Y-%m-%dT%H:%M:%S')
+        time_str = '2023-04-23T13:00:00'
+        time2 = datetime.strptime(time_str, '%Y-%m-%dT%H:%M:%S')
+        data = {'aircraft': reverse('aircraft-detail', args=[self.aircraft2.pk]),
+                'pilot': reverse('user-detail', args=[self.pilot_user1.pk]),
+                'start_time': time1,
+                'end_time': time2}
+        request = self.factory.put('/booking/', data, content_type='application/json')
+        force_authenticate(request, user=self.pilot_user2)
+        response = BookingViewSet.as_view({'put': 'update'})(request, pk=self.booking1.pk)
+        self.assertEqual(response.status_code, 404)
+        self.assertIn("Not found.", str(response.data))
+
     def test_modify_booking_pilot_success(self):
         time_str = '2023-04-23T10:00:00'
         time1 = datetime.strptime(time_str, '%Y-%m-%dT%H:%M:%S')
@@ -291,11 +308,10 @@ class BookingTestCase(TestCase):
         response = BookingViewSet.as_view({'put': 'update'})(request, pk=self.booking1.pk)
         self.assertEqual(response.status_code, 200)
 
-
     def test_modify_booking_pilot_failed_aircraft_time_taken(self):
-        time_str = '2023-04-23T10:00:00'
+        time_str = '2023-04-20T10:00:00'
         time1 = datetime.strptime(time_str, '%Y-%m-%dT%H:%M:%S')
-        time_str = '2023-04-23T13:00:00'
+        time_str = '2023-04-20T13:00:00'
         time2 = datetime.strptime(time_str, '%Y-%m-%dT%H:%M:%S')
         data = {'aircraft': reverse('aircraft-detail', args=[self.aircraft2.pk]),
                 'pilot': reverse('user-detail', args=[self.pilot_user1.pk]),
@@ -304,7 +320,8 @@ class BookingTestCase(TestCase):
         request = self.factory.put('/booking/', data, content_type='application/json')
         force_authenticate(request, user=self.pilot_user1)
         response = BookingViewSet.as_view({'put': 'update'})(request, pk=self.booking1.pk)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(json.loads(response.content), {'status': 'false', 'message': 'Booking overlap.'})
 
     def test_modify_booking_staff(self):
         time_str = '2023-04-23T10:00:00'
@@ -321,7 +338,6 @@ class BookingTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_modify_booking_staff_failed_aircraft_time_taken(self):
-        """should fail"""
         time_str = '2023-04-18T10:00:00'
         time1 = datetime.strptime(time_str, '%Y-%m-%dT%H:%M:%S')
         time_str = '2023-04-18T13:00:00'
@@ -333,10 +349,10 @@ class BookingTestCase(TestCase):
         request = self.factory.put('/booking/', data, content_type='application/json')
         force_authenticate(request, user=self.pilot_user1)
         response = BookingViewSet.as_view({'put': 'update'})(request, pk=self.booking1.pk)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(json.loads(response.content), {'status': 'false', 'message': 'Booking overlap.'})
 
     def test_modify_booking_staff_failed_pilot_time_taken(self):
-        """should fail"""
         time_str = '2023-04-18T10:00:00'
         time1 = datetime.strptime(time_str, '%Y-%m-%dT%H:%M:%S')
         time_str = '2023-04-18T13:00:00'
@@ -348,7 +364,8 @@ class BookingTestCase(TestCase):
         request = self.factory.put('/booking/', data, content_type='application/json')
         force_authenticate(request, user=self.pilot_user1)
         response = BookingViewSet.as_view({'put': 'update'})(request, pk=self.booking1.pk)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(json.loads(response.content), {'status': 'false', 'message': 'Booking overlap.'})
 
     def test_delete_booking_pilot_failed(self):
         request = self.factory.delete(f'/booking/{self.booking2.pk}/')
@@ -368,7 +385,7 @@ class BookingTestCase(TestCase):
 
     def test_delete_booking_staff(self):
         request = self.factory.delete(f'/booking/{self.booking1.pk}/')
-        force_authenticate(request, user=self.staff1)
+        force_authenticate(request, user=self.staff2)
         response = BookingViewSet.as_view({'delete': 'destroy'})(request, pk=self.booking1.pk)
         self.assertEqual(response.status_code, 204)
         self.assertEqual(response.data, None)
@@ -388,8 +405,6 @@ class BookingTestCase(TestCase):
         self.assertIn("not_authenticated", str(response.data))
 
     def test_create_booking_pilot_failed(self):
-        """ should fail """
-
         time_str = '2023-04-23T10:00:00'
         time1 = datetime.strptime(time_str, '%Y-%m-%dT%H:%M:%S')
         time_str = '2023-04-23T13:00:00'
@@ -401,7 +416,8 @@ class BookingTestCase(TestCase):
         request = self.factory.post('/booking/', request_data)
         force_authenticate(request, user=self.pilot_user2)
         response = BookingViewSet.as_view({'post': 'create'})(request)
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(json.loads(response.content), {'message': 'Not authenticated.', 'status': 'false'})
 
     def test_create_booking_pilot_success(self):
         time_str = '2023-04-23T10:00:00'
@@ -415,7 +431,7 @@ class BookingTestCase(TestCase):
         request = self.factory.post('/booking/', request_data)
         force_authenticate(request, user=self.pilot_user1)
         response = BookingViewSet.as_view({'post': 'create'})(request)
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 200)
 
     def test_create_booking_staff(self):
         time_str = '2023-04-23T10:00:00'
@@ -429,10 +445,9 @@ class BookingTestCase(TestCase):
         request = self.factory.post('/booking/', request_data)
         force_authenticate(request, user=self.staff1)
         response = BookingViewSet.as_view({'post': 'create'})(request)
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 200)
 
     def test_create_booking_staff_failed_aircraft_time_taken(self):
-        """ should fail """
         time_str = '2023-04-18T10:00:00'
         time1 = datetime.strptime(time_str, '%Y-%m-%dT%H:%M:%S')
         time_str = '2023-04-18T21:00:00'
@@ -444,5 +459,5 @@ class BookingTestCase(TestCase):
         request = self.factory.post('/booking/', request_data)
         force_authenticate(request, user=self.staff1)
         response = BookingViewSet.as_view({'post': 'create'})(request)
-        self.assertEqual(response.status_code, 201)
-
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(json.loads(response.content), {'status': 'false', 'message': 'Booking overlap.'})
