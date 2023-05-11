@@ -1,9 +1,7 @@
 from django.contrib.auth.models import User, Group
 from django.db.models import Q
 from django.http import JsonResponse
-from requests import Response
 from rest_framework import viewsets, generics
-from rest_framework.exceptions import PermissionDenied
 from backend.serializers import UserSerializer, GroupSerializer, RegisterSerializer, AircraftSerializer, \
     CertificateSerializer, BookingSerializer, StaffSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
