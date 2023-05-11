@@ -4,10 +4,10 @@ from django.http import JsonResponse
 from requests import Response
 from rest_framework import viewsets, generics
 from rest_framework.exceptions import PermissionDenied
-from backend.serializers import UserSerializer, GroupSerializer, AircraftSerializer, RegisterSerializer, \
-    BookingSerializer, StaffSerializer
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from backend.models import Aircraft, Booking, Staff
+from backend.serializers import UserSerializer, GroupSerializer, RegisterSerializer, AircraftSerializer, \
+    CertificateSerializer, BookingSerializer, StaffSerializer
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
+from backend.models import Aircraft, Certificate, Booking, Staff
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -61,6 +61,26 @@ class AircraftViewSet(viewsets.ModelViewSet):
         return queryset
 
 
+class CertificateViewSet(viewsets.ModelViewSet):
+    queryset = Certificate.objects.all()
+    serializer_class = CertificateSerializer
+
+    def get_permissions(self):
+        if self.action == 'create' or self.action == 'update' or self.action == 'partial_update' or self.action == 'destroy' :
+            permission_classes = [IsAdminUser]
+        else:
+            permission_classes = [IsAuthenticated]
+        return [permission() for permission in permission_classes]
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return JsonResponse(serializer.data)
+
+      
 class StaffViewSet(viewsets.ModelViewSet):
     queryset = Staff.objects.all()
     permission_classes = [IsAuthenticated]
@@ -213,7 +233,7 @@ class BookingViewSet(viewsets.ModelViewSet):
 
         self.perform_update(serializer)
         return JsonResponse(serializer.data)
-
+      
 
 def status(request):
     return JsonResponse({'status': 'OK'})

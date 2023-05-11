@@ -1,8 +1,9 @@
 from django.test import TestCase, RequestFactory
 from django.urls import reverse
 from django.contrib.auth.models import User, Group
+
+from .views import UserViewSet, RegisterView, GroupViewSet, AircraftViewSet, status, CertificateViewSet, BookingViewSet
 from .models import Staff, Aircraft, Booking, Certificate
-from .views import UserViewSet, RegisterView, GroupViewSet, AircraftViewSet, status, BookingViewSet
 from rest_framework.test import APIClient, force_authenticate
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from rest_framework_simplejwt.views import (
@@ -193,6 +194,107 @@ class JWTTestCase(TestCase):
         self.assertEqual(response.status_code, 401)
 
 
+class CertificateTestCase(TestCase):
+
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.client = APIClient()
+        self.user = User.objects.create_user("user", "user@email.com", "password")
+        self.admin = User.objects.create_user(username='admin', password='password', is_staff=True)
+        self.certificate = Certificate.objects.create(certificate_name='cert1')
+
+    def test_get_certificates_unauthorized(self):
+        request = self.factory.get('/certificate/')
+        response = CertificateViewSet.as_view({'get': 'list'})(request)
+        self.assertEqual(response.status_code, 401)
+
+    def test_get_certificates_user(self):
+        request = self.factory.get('/certificate/')
+        force_authenticate(request, user=self.user)
+        response = CertificateViewSet.as_view({'get': 'list'})(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 1)
+
+    def test_get_certificates_admin(self):
+        request = self.factory.get('/certificate/')
+        force_authenticate(request, user=self.admin)
+        response = CertificateViewSet.as_view({'get': 'list'})(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 1)
+
+    def test_get_specific_certificate_admin(self):
+        request = self.factory.get(f'/certificate/{self.certificate.certificate_name}')
+        force_authenticate(request, user=self.admin)
+        response = CertificateViewSet.as_view({'get': 'list'})(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 1)
+
+    def test_add_certificate_user(self):
+        request_data = {'certificate_name': 'cert2'}
+        request = self.factory.post('/certificate/', request_data)
+        force_authenticate(request, user=self.user)
+        response = CertificateViewSet.as_view({'post': 'create'})(request)
+        self.assertEqual(response.status_code, 403)
+        self.assertIn("permission_denied", str(response.data))
+
+    def test_add_certificate_admin(self):
+        request_data = {'certificate_name': 'cert2'}
+        request = self.factory.post('/certificate/', request_data)
+        force_authenticate(request, user=self.admin)
+        response = CertificateViewSet.as_view({'post': 'create'})(request)
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.data['certificate_name'], 'cert2')
+
+    def test_add_certificate_already_exists_admin(self):
+        request_data = {'certificate_name': self.certificate.certificate_name}
+        request = self.factory.post('/certificate/', request_data)
+        force_authenticate(request, user=self.admin)
+        response = CertificateViewSet.as_view({'post': 'create'})(request)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("certificate with this certificate name already exists", str(response.data))
+
+    def test_modify_certificate_user(self):
+        request_data = {'certificate_name': 'certificate1'}
+        request = self.factory.put('/certificate/', data=request_data, content_type='application/json')
+        force_authenticate(request, user=self.user)
+        response = CertificateViewSet.as_view({'put': 'update'})(request, pk='cert1')
+        self.assertEqual(response.status_code, 403)
+        self.assertIn("permission_denied", str(response.data))
+
+    def test_modify_certificate_admin(self):
+        request_data = {'certificate_name': 'certificate1'}
+        request = self.factory.put('/certificate/', data=request_data, content_type='application/json')
+        force_authenticate(request, user=self.admin)
+        response = CertificateViewSet.as_view({'put': 'update'})(request, pk=self.certificate.certificate_name)
+        self.assertEqual(response.status_code, 200)
+        response = json.loads(response.content.decode())
+        self.assertEqual(response['certificate_name'], 'certificate1')
+
+    def test_modify_certificate_not_found_admin(self):
+        request_data = {'certificate_name': 'certificate1'}
+        request = self.factory.put('/certificate/', data=request_data, content_type='application/json')
+        force_authenticate(request, user=self.admin)
+        response = CertificateViewSet.as_view({'put': 'update'})(request, pk='certificate1')
+        self.assertEqual(response.status_code, 404)
+        self.assertIn("Not found", str(response.data))
+
+    def test_delete_certificate_user(self):
+        request = self.factory.delete(f'/certificate/{self.certificate.certificate_name}/')
+        force_authenticate(request, user=self.user)
+        response = CertificateViewSet.as_view({'delete': 'destroy'})(request, pk=self.certificate.certificate_name)
+        self.assertEqual(response.status_code, 403)
+        self.assertIn("permission_denied", str(response.data))
+
+    def test_delete_certificate_admin(self):
+        request = self.factory.delete(f'/certificate/{self.certificate.certificate_name}/')
+        force_authenticate(request, user=self.admin)
+        response = CertificateViewSet.as_view({'delete': 'destroy'})(request, pk=self.certificate.certificate_name)
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(response.data, None)
+        with self.assertRaises(Certificate.DoesNotExist):
+            Certificate.objects.get(certificate_name=self.certificate.certificate_name)
+            
+            
 class BookingTestCase(TestCase):
 
     def setUp(self):

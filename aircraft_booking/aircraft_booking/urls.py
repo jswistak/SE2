@@ -30,6 +30,7 @@ router.register(r'groups', views.GroupViewSet)
 router.register(r'aircraft', views.AircraftViewSet)
 router.register(r'booking', views.BookingViewSet)
 router.register(r'staff', views.StaffViewSet)
+router.register(r'certificate', views.CertificateViewSet)
 
 
 urlpatterns = [
