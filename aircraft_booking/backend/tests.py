@@ -1,8 +1,9 @@
 from django.test import TestCase, RequestFactory
 from django.contrib.auth.models import User
 
+
 from .views import UserViewSet, RegisterView, GroupViewSet, AircraftViewSet, status, CertificateViewSet
-from .models import Certificate
+from .models import Certificate, Aircraft
 from rest_framework.test import APIClient, force_authenticate
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from rest_framework_simplejwt.views import (
@@ -192,8 +193,71 @@ class JWTTestCase(TestCase):
         self.assertEqual(response.status_code, 401)
 
 
-class CertificateTestCase(TestCase):
+class AircraftTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.client = APIClient()
+        self.user = User.objects.create_user("user", "user@email.com", "password")
+        self.access_token = str(AccessToken.for_user(self.user))
+        Aircraft.objects.create(aircraft_id='SP-KOS', aircraft_name='name', aircraft_type="C182", aircraft_capacity=4, aircraft_range=1000, aircraft_speed=100, aircraft_fuel=100, aircraft_cost_per_hour=1000)
 
+    def test_aircraft_list_unauthorized(self):
+        request = self.factory.get('/aircraft/')
+        response = AircraftViewSet.as_view({'get': 'list'})(request)
+        self.assertEqual(response.status_code, 401)
+
+    # TODO: just admin can create new aircraft
+    def test_aircraft_create(self):
+        request_data = {'aircraft_id': 'SP-KOG',
+                'aircraft_name': 'name', 'aircraft_type': "C182", 'aircraft_capacity': 4, 'aircraft_range': 1000,
+                'aircraft_speed': 100, 'aircraft_fuel': 100, 'aircraft_status': 'available',
+                'aircraft_cost_per_hour': 1000, 'aircraft_fuel_cost': 10}
+        request = self.factory.post('/aircraft/', request_data)
+        force_authenticate(request, user=self.user)
+        response = AircraftViewSet.as_view({'post': 'create'})(request)
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.data['aircraft_id'], 'SP-KOG')
+
+    def test_aircraft_create_unauthorized(self):
+        request_data = {'aircraft_id': 'SP-SOP',
+                        'aircraft_name': 'name', 'aircraft_type': "C182", 'aircraft_capacity': 4,
+                        'aircraft_range': 1000,
+                        'aircraft_speed': 100, 'aircraft_fuel': 100, 'aircraft_status': 'available',
+                        'aircraft_cost_per_hour': 1000, 'aircraft_fuel_cost': 10}
+        request = self.factory.post('/aircraft/', request_data)
+        response = AircraftViewSet.as_view({'post': 'create'})(request)
+        self.assertEqual(response.status_code, 401)
+
+    def test_aircraft_list(self):
+        request = self.factory.get('/aircraft/')
+        force_authenticate(request, user=self.user)
+        response = AircraftViewSet.as_view({'get': 'list'})(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 1)
+
+    def test_aircraft_detail(self):
+        request = self.factory.get('/aircraft/SP-KOS/')
+        force_authenticate(request, user=self.user)
+        response = AircraftViewSet.as_view({'get': 'retrieve'})(request, pk='SP-KOS')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['aircraft_id'], 'SP-KOS')
+
+    def test_aircraft_modify(self):
+        request_data = {'aircraft_id': 'SP-KOS',
+                        'aircraft_name': 'name', 'aircraft_type': "C152", 'aircraft_capacity': 4,
+                        'aircraft_range': 1000,
+                        'aircraft_speed': 100, 'aircraft_fuel': 100, 'aircraft_status': 'available',
+                        'aircraft_cost_per_hour': 1000, 'aircraft_fuel_cost': 10}
+        request = self.factory.put('/SP-KOS/', data=request_data, content_type='application/json')
+        force_authenticate(request, user=self.user)
+        response = AircraftViewSet.as_view({'put': 'update'})(request, pk='SP-KOS')
+
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content.decode())
+        self.assertEqual(data['aircraft_id'], 'SP-KOS')
+        self.assertEqual(data['aircraft_type'], 'C152')
+
+class CertificateTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
         self.client = APIClient()
@@ -291,3 +355,4 @@ class CertificateTestCase(TestCase):
         self.assertEqual(response.data, None)
         with self.assertRaises(Certificate.DoesNotExist):
             Certificate.objects.get(certificate_name=self.certificate.certificate_name)
+
