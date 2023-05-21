@@ -2,7 +2,7 @@ from django.contrib.auth.models import User, Group
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 from django.contrib.auth.password_validation import validate_password
-from backend.models import Aircraft, Certificate
+from backend.models import Aircraft, Booking, Staff, Certificate
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
@@ -37,8 +37,8 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.save()
 
         return user
-
-
+      
+      
 class GroupSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Group
@@ -52,8 +52,19 @@ class AircraftSerializer(serializers.HyperlinkedModelSerializer):
                   'aircraft_speed', 'aircraft_cost_per_hour', 'aircraft_fuel']
 
 
+class StaffSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Staff
+        fields = ['user', 'certificates']
+
+
+class BookingSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Booking
+        fields = ['aircraft', 'pilot', 'instructor', 'start_time', 'end_time']
+        
+        
 class CertificateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Certificate
         fields = ['certificate_name']
-

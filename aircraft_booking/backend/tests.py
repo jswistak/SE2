@@ -1,9 +1,10 @@
 from django.test import TestCase, RequestFactory
-from django.contrib.auth.models import User
+from django.urls import reverse
+from django.contrib.auth.models import User, Group
 
 
-from .views import UserViewSet, RegisterView, GroupViewSet, AircraftViewSet, status, CertificateViewSet
-from .models import Certificate, Aircraft
+from .views import UserViewSet, RegisterView, GroupViewSet, AircraftViewSet, status, CertificateViewSet, BookingViewSet
+from .models import Staff, Certificate, Aircraft, Booking
 from rest_framework.test import APIClient, force_authenticate
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from rest_framework_simplejwt.views import (
@@ -12,6 +13,7 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView,
 )
 import json
+from datetime import datetime
 
 
 class UserTestCase(TestCase):
@@ -257,6 +259,7 @@ class AircraftTestCase(TestCase):
         self.assertEqual(data['aircraft_id'], 'SP-KOS')
         self.assertEqual(data['aircraft_type'], 'C152')
 
+
 class CertificateTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
@@ -356,3 +359,272 @@ class CertificateTestCase(TestCase):
         with self.assertRaises(Certificate.DoesNotExist):
             Certificate.objects.get(certificate_name=self.certificate.certificate_name)
 
+
+class BookingTestCase(TestCase):
+
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.client = APIClient()
+
+        staff_user1 = User.objects.create_user(username='staff_user1', password='password1')
+        staff_user2 = User.objects.create_user(username='staff_user2', password='password2')
+        certificate = Certificate.objects.create(certificate_name='cert1')
+        self.staff1 = Staff.objects.create(user=staff_user1)
+        self.staff1.certificates.set([certificate])
+        self.staff2 = Staff.objects.create(user=staff_user2)
+        self.staff2.certificates.set([certificate])
+
+        self.aircraft1 = Aircraft.objects.create(aircraft_id='SP-KOS', aircraft_name='name1', aircraft_type="C182",
+                                                 aircraft_capacity=4, aircraft_range=1000, aircraft_speed=100,
+                                                 aircraft_fuel=100, aircraft_cost_per_hour=1000)
+        self.aircraft2 = Aircraft.objects.create(aircraft_id='SP-KOG', aircraft_name='name2', aircraft_type="C182",
+                                                 aircraft_capacity=4, aircraft_range=1000, aircraft_speed=100,
+                                                 aircraft_fuel=100, aircraft_cost_per_hour=1000)
+
+        self.pilot_user1 = User.objects.create_user("user1", "user1@email.com", "password1")
+        self.pilot_user2 = User.objects.create_user("user2", "user2@email.com", "password2")
+
+        self.booking1 = Booking.objects.create(aircraft=self.aircraft1, pilot=self.pilot_user1, instructor=self.staff1,
+                                               start_time=datetime(2023, 4, 18, 10, 30),
+                                               end_time=datetime(2023, 4, 18, 20, 30))
+        self.booking2 = Booking.objects.create(aircraft=self.aircraft2, pilot=self.pilot_user2,
+                                               start_time=datetime(2023, 4, 20, 10, 30),
+                                               end_time=datetime(2023, 4, 20, 20, 30))
+
+    def test_get_bookings_unauthorized(self):
+        request = self.factory.get('/booking/')
+        response = BookingViewSet.as_view({'get': 'list'})(request)
+        self.assertEqual(response.status_code, 401)
+        self.assertIn("Authentication credentials were not provided", str(response.data))
+
+    def test_get_bookings_pilot(self):
+        request = self.factory.get('/booking/')
+        force_authenticate(request, user=self.pilot_user1)
+        response = BookingViewSet.as_view({'get': 'list'})(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 1)
+
+    def test_get_bookings_staff(self):
+        request = self.factory.get('/booking/')
+        force_authenticate(request, user=self.staff1)
+        response = BookingViewSet.as_view({'get': 'list'})(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 2)
+
+    def test_get_bookings_specific_aircraft(self):
+        data = {'aircraft': self.aircraft1.pk}
+        request = self.factory.get('/booking/', data)
+        force_authenticate(request, user=self.staff1)
+        response = BookingViewSet.as_view({'get': 'list'})(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 1)
+
+    def test_get_bookings_specific_pilot(self):
+        data = {'pilot': self.pilot_user1.pk}
+        request = self.factory.get('/booking/', data)
+        force_authenticate(request, user=self.staff1)
+        response = BookingViewSet.as_view({'get': 'list'})(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 1)
+
+    def test_get_bookings_in_time_period(self):
+        time_str = '2023-04-19T10:00:00'
+        time1 = datetime.strptime(time_str, '%Y-%m-%dT%H:%M:%S')
+        time_str = '2023-04-21T10:00:00'
+        time2 = datetime.strptime(time_str, '%Y-%m-%dT%H:%M:%S')
+        data = {'start_time': time1, 'end_time': time2}
+        request = self.factory.get('/booking/', data)
+        force_authenticate(request, user=self.staff1)
+        response = BookingViewSet.as_view({'get': 'list'})(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 1)
+
+    def test_modify_booking_pilot_failed(self):
+        data = {'aircraft': reverse('aircraft-detail', args=[self.aircraft2.pk])}
+        request = self.factory.put('/booking/', data, content_type='application/json')
+        force_authenticate(request, user=self.pilot_user1)
+        response = BookingViewSet.as_view({'put': 'update'})(request, pk=self.booking1.pk)
+        self.assertEqual(response.status_code, 400)
+
+    def test_modify_booking_pilot_unauthorized_failed(self):
+        time_str = '2023-04-23T10:00:00'
+        time1 = datetime.strptime(time_str, '%Y-%m-%dT%H:%M:%S')
+        time_str = '2023-04-23T13:00:00'
+        time2 = datetime.strptime(time_str, '%Y-%m-%dT%H:%M:%S')
+        data = {'aircraft': reverse('aircraft-detail', args=[self.aircraft2.pk]),
+                'pilot': reverse('user-detail', args=[self.pilot_user1.pk]),
+                'start_time': time1,
+                'end_time': time2}
+        request = self.factory.put('/booking/', data, content_type='application/json')
+        force_authenticate(request, user=self.pilot_user2)
+        response = BookingViewSet.as_view({'put': 'update'})(request, pk=self.booking1.pk)
+        self.assertEqual(response.status_code, 404)
+        self.assertIn("Not found.", str(response.data))
+
+    def test_modify_booking_pilot_success(self):
+        time_str = '2023-04-23T10:00:00'
+        time1 = datetime.strptime(time_str, '%Y-%m-%dT%H:%M:%S')
+        time_str = '2023-04-23T13:00:00'
+        time2 = datetime.strptime(time_str, '%Y-%m-%dT%H:%M:%S')
+        data = {'aircraft': reverse('aircraft-detail', args=[self.aircraft2.pk]),
+                'pilot': reverse('user-detail', args=[self.pilot_user1.pk]),
+                'start_time': time1,
+                'end_time': time2}
+        request = self.factory.put('/booking/', data, content_type='application/json')
+        force_authenticate(request, user=self.pilot_user1)
+        response = BookingViewSet.as_view({'put': 'update'})(request, pk=self.booking1.pk)
+        self.assertEqual(response.status_code, 200)
+
+    def test_modify_booking_pilot_failed_aircraft_time_taken(self):
+        time_str = '2023-04-20T10:00:00'
+        time1 = datetime.strptime(time_str, '%Y-%m-%dT%H:%M:%S')
+        time_str = '2023-04-20T13:00:00'
+        time2 = datetime.strptime(time_str, '%Y-%m-%dT%H:%M:%S')
+        data = {'aircraft': reverse('aircraft-detail', args=[self.aircraft2.pk]),
+                'pilot': reverse('user-detail', args=[self.pilot_user1.pk]),
+                'start_time': time1,
+                'end_time': time2}
+        request = self.factory.put('/booking/', data, content_type='application/json')
+        force_authenticate(request, user=self.pilot_user1)
+        response = BookingViewSet.as_view({'put': 'update'})(request, pk=self.booking1.pk)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(json.loads(response.content), {'status': 'false', 'message': 'Booking overlap.'})
+
+    def test_modify_booking_staff(self):
+        time_str = '2023-04-23T10:00:00'
+        time1 = datetime.strptime(time_str, '%Y-%m-%dT%H:%M:%S')
+        time_str = '2023-04-23T13:00:00'
+        time2 = datetime.strptime(time_str, '%Y-%m-%dT%H:%M:%S')
+        data = {'aircraft': reverse('aircraft-detail', args=[self.aircraft2.pk]),
+                'pilot': reverse('user-detail', args=[self.pilot_user1.pk]),
+                'start_time': time1,
+                'end_time': time2}
+        request = self.factory.put('/booking/', data, content_type='application/json')
+        force_authenticate(request, user=self.staff2)
+        response = BookingViewSet.as_view({'put': 'update'})(request, pk=self.booking1.pk)
+        self.assertEqual(response.status_code, 200)
+
+    def test_modify_booking_staff_failed_aircraft_time_taken(self):
+        time_str = '2023-04-18T10:00:00'
+        time1 = datetime.strptime(time_str, '%Y-%m-%dT%H:%M:%S')
+        time_str = '2023-04-18T13:00:00'
+        time2 = datetime.strptime(time_str, '%Y-%m-%dT%H:%M:%S')
+        data = {'aircraft': reverse('aircraft-detail', args=[self.aircraft1.pk]),
+                'pilot': reverse('user-detail', args=[self.pilot_user1.pk]),
+                'start_time': time1,
+                'end_time': time2}
+        request = self.factory.put('/booking/', data, content_type='application/json')
+        force_authenticate(request, user=self.pilot_user1)
+        response = BookingViewSet.as_view({'put': 'update'})(request, pk=self.booking1.pk)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(json.loads(response.content), {'status': 'false', 'message': 'Booking overlap.'})
+
+    def test_modify_booking_staff_failed_pilot_time_taken(self):
+        time_str = '2023-04-18T10:00:00'
+        time1 = datetime.strptime(time_str, '%Y-%m-%dT%H:%M:%S')
+        time_str = '2023-04-18T13:00:00'
+        time2 = datetime.strptime(time_str, '%Y-%m-%dT%H:%M:%S')
+        data = {'aircraft': reverse('aircraft-detail', args=[self.aircraft2.pk]),
+                'pilot': reverse('user-detail', args=[self.pilot_user1.pk]),
+                'start_time': time1,
+                'end_time': time2}
+        request = self.factory.put('/booking/', data, content_type='application/json')
+        force_authenticate(request, user=self.pilot_user1)
+        response = BookingViewSet.as_view({'put': 'update'})(request, pk=self.booking1.pk)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(json.loads(response.content), {'status': 'false', 'message': 'Booking overlap.'})
+
+    def test_delete_booking_pilot_failed(self):
+        request = self.factory.delete(f'/booking/{self.booking2.pk}/')
+        force_authenticate(request, user=self.pilot_user1)
+        response = BookingViewSet.as_view({'delete': 'destroy'})(request, pk=self.booking2.pk)
+        self.assertEqual(response.status_code, 404)
+        self.assertIn("Not found.", str(response.data))
+
+    def test_delete_booking_pilot_success(self):
+        request = self.factory.delete(f'/booking/{self.booking1.pk}/')
+        force_authenticate(request, user=self.pilot_user1)
+        response = BookingViewSet.as_view({'delete': 'destroy'})(request, pk=self.booking1.pk)
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(response.data, None)
+        with self.assertRaises(Booking.DoesNotExist):
+            Booking.objects.get(pk=self.booking1.pk)
+
+    def test_delete_booking_staff(self):
+        request = self.factory.delete(f'/booking/{self.booking1.pk}/')
+        force_authenticate(request, user=self.staff2)
+        response = BookingViewSet.as_view({'delete': 'destroy'})(request, pk=self.booking1.pk)
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(response.data, None)
+        with self.assertRaises(Booking.DoesNotExist):
+            Booking.objects.get(pk=self.booking1.pk)
+
+    def test_create_booking_unauthorized(self):
+        time_str = '2023-04-23T10:00:00'
+        time1 = datetime.strptime(time_str, '%Y-%m-%dT%H:%M:%S')
+        time_str = '2023-04-23T13:00:00'
+        time2 = datetime.strptime(time_str, '%Y-%m-%dT%H:%M:%S')
+        request_data = {'aircraft': self.aircraft1.pk, 'pilot': self.pilot_user1.pk, 'instructor': self.staff1.pk,
+                'start_time': time1, 'end_time': time2}
+        request = self.factory.post('/booking/', request_data)
+        response = BookingViewSet.as_view({'post': 'create'})(request)
+        self.assertEqual(response.status_code, 401)
+        self.assertIn("not_authenticated", str(response.data))
+
+    def test_create_booking_pilot_failed(self):
+        time_str = '2023-04-23T10:00:00'
+        time1 = datetime.strptime(time_str, '%Y-%m-%dT%H:%M:%S')
+        time_str = '2023-04-23T13:00:00'
+        time2 = datetime.strptime(time_str, '%Y-%m-%dT%H:%M:%S')
+        request_data = {'aircraft': reverse('aircraft-detail', args=[self.aircraft1.pk]),
+                        'pilot': reverse('user-detail', args=[self.pilot_user1.pk]),
+                        'start_time': time1,
+                        'end_time': time2}
+        request = self.factory.post('/booking/', request_data)
+        force_authenticate(request, user=self.pilot_user2)
+        response = BookingViewSet.as_view({'post': 'create'})(request)
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(json.loads(response.content), {'message': 'Not authenticated.', 'status': 'false'})
+
+    def test_create_booking_pilot_success(self):
+        time_str = '2023-04-23T10:00:00'
+        time1 = datetime.strptime(time_str, '%Y-%m-%dT%H:%M:%S')
+        time_str = '2023-04-23T13:00:00'
+        time2 = datetime.strptime(time_str, '%Y-%m-%dT%H:%M:%S')
+        request_data = {'aircraft': reverse('aircraft-detail', args=[self.aircraft1.pk]),
+                        'pilot': reverse('user-detail', args=[self.pilot_user1.pk]),
+                        'start_time': time1,
+                        'end_time': time2}
+        request = self.factory.post('/booking/', request_data)
+        force_authenticate(request, user=self.pilot_user1)
+        response = BookingViewSet.as_view({'post': 'create'})(request)
+        self.assertEqual(response.status_code, 200)
+
+    def test_create_booking_staff(self):
+        time_str = '2023-04-23T10:00:00'
+        time1 = datetime.strptime(time_str, '%Y-%m-%dT%H:%M:%S')
+        time_str = '2023-04-23T13:00:00'
+        time2 = datetime.strptime(time_str, '%Y-%m-%dT%H:%M:%S')
+        request_data = {'aircraft': reverse('aircraft-detail', args=[self.aircraft1.pk]),
+                        'pilot': reverse('user-detail', args=[self.pilot_user1.pk]),
+                        'start_time': time1,
+                        'end_time': time2}
+        request = self.factory.post('/booking/', request_data)
+        force_authenticate(request, user=self.staff1)
+        response = BookingViewSet.as_view({'post': 'create'})(request)
+        self.assertEqual(response.status_code, 200)
+
+    def test_create_booking_staff_failed_aircraft_time_taken(self):
+        time_str = '2023-04-18T10:00:00'
+        time1 = datetime.strptime(time_str, '%Y-%m-%dT%H:%M:%S')
+        time_str = '2023-04-18T21:00:00'
+        time2 = datetime.strptime(time_str, '%Y-%m-%dT%H:%M:%S')
+        request_data = {'aircraft': reverse('aircraft-detail', args=[self.aircraft1.pk]),
+                        'pilot': reverse('user-detail', args=[self.pilot_user1.pk]),
+                        'start_time': time1,
+                        'end_time': time2}
+        request = self.factory.post('/booking/', request_data)
+        force_authenticate(request, user=self.staff1)
+        response = BookingViewSet.as_view({'post': 'create'})(request)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(json.loads(response.content), {'status': 'false', 'message': 'Booking overlap.'})
