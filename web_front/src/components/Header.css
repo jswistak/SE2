@@ -1,0 +1,35 @@
+/* Necessary for now for dummy elements*/
+
+body {
+    min-height: 1000px;
+}
+
+section {
+    margin-top: 50vh;
+    padding: 100px;
+    position: relative;
+    z-index: -1;
+}
+
+section h2 {
+    font-size: 3em;
+}
+
+section p {
+    padding-top: 30px;
+    font-size: 1.2em;
+}
+
+/* Necessary for now for dummy elements */
+
+@media (max-width: 991px) {
+
+    section {
+        padding: 40px;
+    }
+    
+    section h2 {
+        font-size: 2em;
+    }
+    
+}

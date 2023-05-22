@@ -1,0 +1,68 @@
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: var(--color-bg);
+    padding: 0 100px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    transition: 1s;
+}
+
+.header .hero {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: 1s;
+}
+
+.header .logo {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 15vw;
+    color: var(--color-accent1);
+    text-decoration: none;
+    font-weight: 700;
+    z-index: 1;
+    transition: 1s;
+}
+
+.header.sticky {
+    height: var(--navbar-height);
+}
+
+.header.sticky .logo {
+    position: absolute;
+    font-size: 2em;
+    left: 100px;
+    transform: translate(0, -50%);
+}
+
+.header.sticky .hero {
+    opacity: 0.5;
+    object-position: 80%;
+}
+
+.header.mobile {
+    padding: 40px;
+}
+  
+header.sticky .logo.mobile {
+    left: 40px;
+}
+
+header.sticky .hero.mobile {
+    opacity: 0;
+}
+
+header .margin-bottom {
+    margin-top: calc(var(--navbar-height) + 10vh)
+}

@@ -1,17 +1,19 @@
-import React, { useState, useRef, useEffect } from "react";
-import hero from "../resources/images/hero-plane.jpg";
-import HeroImage from "./HeroImage";
-import Logo from "./Logo";
-import MenuButton from "./MenuButton";
-import Nav from "./Nav";
+import React, { useState, useRef, useEffect, useContext } from 'react';
+import hero from '../resources/images/hero-plane.jpg';
+import { IsMobileContext } from "../App.js";
+import './Header.css';
+import styles from "./Header.module.css";
+import HeroImage from './HeroImage';
+import Logo from './Logo';
+import MenuButton from './MenuButton';
+import Menu from './Menu';
 
 function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
-  const [isAtTop, setIsAtTop] = useState(true);
 
-  const toggleRef = useRef(null);
-  const navRef = useRef(null);
+  const menuButtonRef = useRef(null);
+  const menuRef = useRef(null);
   const headerRef = useRef(null);
 
   const toggleMenu = () => {
@@ -20,18 +22,7 @@ function Header() {
 
   const handleScroll = () => {
     const isAtTop = window.scrollY === 0;
-    setIsAtTop(isAtTop);
     setIsSticky(!isAtTop);
-
-    const nav = navRef.current;
-    if (nav && isAtTop) {
-      nav.classList.toggle("active", false);
-    }
-
-    const toggle = toggleRef.current;
-    if (toggle && isAtTop) {
-      toggle.classList.toggle("active", false);
-    }
   };
 
   useEffect(() => {
@@ -41,26 +32,45 @@ function Header() {
     };
   }, []);
 
-  const headerClass = isSticky ? "sticky" : "";
-
   const links = [
-    { href: "#", text: "Home" },
-    { href: "#", text: "Profile" },
-    { href: "#", text: "Team" },
-    { href: "#", text: "Contact" },
-    { href: "Login", text: "Login" }
+    { href: "/#", text: "Home" },
+    { href: "/Profile", text: "Profile" },
+    { href: "/#", text: "Team" },
+    { href: "/#", text: "Contact" },
+    { href: "/Login", text: "Login" }
   ];
 
+  const isMobile = useContext(IsMobileContext);
+  const mobileClass = isMobile ? styles.mobile : '';
+
+  const headerClass = `${styles.header} ${isSticky ? styles.sticky : ''} ${mobileClass}`;
+  const heroClass = `${styles.hero} ${isSticky ? styles.sticky : ''} ${mobileClass}`;
+  const logoClass = `${styles.logo} ${isSticky ? styles.sticky : ''} ${mobileClass}`;
+
+
   return (
-    <header className={headerClass} ref={headerRef}>
-      <HeroImage src={hero} />
-      <Logo phrase="Roam!"/>
-      <MenuButton
-        isActive={isMenuOpen}
-        toggleMenu={toggleMenu}
-        toggleRef={toggleRef}
+    <header className={`${headerClass} ${mobileClass}`} ref={headerRef}>
+      <HeroImage className={`${heroClass} ${mobileClass}`} src={hero} />
+      <Logo className={`${logoClass} ${mobileClass}`} phrase="Roam!" />
+      <Menu
+        links={links}
+        isMenuOpen={isMenuOpen}
+        isSticky={isSticky}
+        menuRef={menuRef}
+        menuButton={
+          <MenuButton
+            isMenuOpen={isMenuOpen}
+            isSticky={isSticky}
+            toggleMenu={toggleMenu}
+            menuButtonRef={menuButtonRef}
+            position={{ top: '15px', right: '40px' }}
+            isMobileOnly={true}
+          />
+        }
       />
-      <Nav links={links} isActive={isMenuOpen} navRef={navRef} />
+      <div className={styles['margin-bottom']}>
+        {/* Header is position fixed. Necessary to independently set the baseline margin for other elements in the document flow */}
+      </div>
     </header>
   );
 }
