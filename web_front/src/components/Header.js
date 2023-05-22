@@ -49,9 +49,9 @@ function Header() {
 
 
   return (
-    <header className={`${headerClass} ${mobileClass}`} ref={headerRef}>
-      <HeroImage className={`${heroClass} ${mobileClass}`} src={hero} />
-      <Logo className={`${logoClass} ${mobileClass}`} phrase="Roam!" />
+    <header className={headerClass} ref={headerRef}>
+      <HeroImage className={heroClass} src={hero} />
+      <Logo className={logoClass} background="white" phrase="Roam!" />
       <Menu
         links={links}
         isMenuOpen={isMenuOpen}
