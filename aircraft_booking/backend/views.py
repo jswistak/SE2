@@ -38,18 +38,30 @@ class GroupViewSet(viewsets.ModelViewSet):
 class AircraftViewSet(viewsets.ModelViewSet):
     queryset = Aircraft.objects.all()
     serializer_class = AircraftSerializer
+    # Required for authentication
+    permission_classes = [IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        if not self.request.user.is_staff:
+            return JsonResponse(status=401, data={'status': 'false', 'message': 'Not authenticated.'})
+
+        self.perform_create(serializer)
+        return JsonResponse(serializer.data)
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
+
+        if not self.request.user.is_staff:
+            return JsonResponse(status=401, data={'status': 'false', 'message': 'Not authenticated.'})
+
         self.perform_update(serializer)
-
         return JsonResponse(serializer.data)
-
-    # Required for authentication
-    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         queryset = Aircraft.objects.all()
