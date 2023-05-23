@@ -1,8 +1,5 @@
-// Calendar.js
-
 import React, { useState } from 'react';
 import styles from './Calendar.module.css';
-import "./App.css";
 
 const Calendar = () => {
     const currentDate = new Date();

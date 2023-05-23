@@ -1,8 +1,5 @@
-// WeekView.js
-
 import React from 'react';
 import styles from './WeekView.module.css';
-import "./App.css";
 
 const WeekView = ({ currentMonth, currentYear }) => {
     // Samples for demonstration:
