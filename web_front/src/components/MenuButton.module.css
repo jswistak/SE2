@@ -1,0 +1,20 @@
+.button {
+    position: fixed;
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
+}
+
+.button-menu {
+    background: var(--menu-icon);
+    background-size: 30px;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.button-close {
+    background: var(--close-icon);
+    background-size: 30px;
+    background-repeat: no-repeat;
+    background-position: center;
+}
