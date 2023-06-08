@@ -1,4 +1,7 @@
-export const callApi = (url, method = 'GET', body = null) => {
+const backendUrl = "http://127.0.0.1:8000/";
+
+export const callApi = (path, method = 'GET', body = null) => {
+    const endpointUrl = backendUrl + path;
     const requestOptions = {
       method,
       headers: {
@@ -10,7 +13,7 @@ export const callApi = (url, method = 'GET', body = null) => {
       requestOptions.body = JSON.stringify(body);
     }
   
-    return fetch(url, requestOptions)
+    return fetch(endpointUrl, requestOptions)
       .then((response) => {
         if (!response.ok) {
           throw new Error('API request failed');
