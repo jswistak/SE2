@@ -18,6 +18,14 @@ function Header() {
   const menuRef = useRef(null);
   const headerRef = useRef(null);
 
+  const [links, setLinks] = useState([
+    { href: "/#", text: "Home" },
+    { href: "/Profile", text: "Profile" },
+    { href: "/#", text: "Team" },
+    { href: "/#", text: "Contact" },
+    isLogged ? {href: "/Logout", text: "Logout" } : {href: "/Login", text: "Login" }
+  ]);
+
   const toggleMenu = () => {
     setIsMenuOpen((prevState) => !prevState);
   };
@@ -26,21 +34,27 @@ function Header() {
     const isAtTop = window.scrollY === 0;
     setIsSticky(!isAtTop);
   };
-
+  const updateLinks = () => {
+    setLinks([
+      { href: "/#", text: "Home" },
+      { href: "/Profile", text: "Profile" },
+      { href: "/#", text: "Team" },
+      { href: "/#", text: "Contact" },
+      isLogged ? {href: "/Logout", text: "Logout" } : {href: "/Login", text: "Login" }
+    ]);
+  }
   useEffect(() => {
     window.addEventListener("scroll", handleScroll);
+    updateLinks();
+    console.log("Reloading")
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
+    
   }, []);
+  
   //console.log(isLogged ? { href: "/Login", text: "Login"} : {href: "Logout", text: "Logout"});
-  const links = [
-    { href: "/#", text: "Home" },
-    { href: "/Profile", text: "Profile" },
-    { href: "/#", text: "Team" },
-    { href: "/#", text: "Contact" },
-    isLogged ? {href: "/Login", text: "Logout" } : {href: "/Login", text: "Login" }
-  ];
+  
   
 
   const isMobile = useContext(IsMobileContext);

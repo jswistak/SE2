@@ -6,19 +6,20 @@ import { useNavigate } from "react-router-dom";
 const LogoutPage = (props) => {
     const navigate = useNavigate();
     const {isLogged, setIsLogged} = useAuth();
-
+    const [confirm, setConfirm] = useState(false);
     const handleLogout = () => {
         setIsLogged(false);
         navigate("/");
       };
+    const handleCancel = () => {
+        setIsLogged(true);
+        navigate("/");
+    }
     return(
         <div className="LoginPage">
-            <form className="login-form" onSubmit={handleLogout}>
-                <label>Are you sure you want to logout?</label>
-                <button type="submit">Yes</button>
-                <button onClick={navigate("/")}>No</button>
-            </form>
-            
+            <label>Are you sure you want to logout?</label>
+            <button onClick={handleLogout}>Yes</button>
+            <button onClick={handleCancel}>No</button>  
         </div>
     );
 }
