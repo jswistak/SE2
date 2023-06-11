@@ -7,11 +7,13 @@ import HeroImage from './HeroImage';
 import Logo from './Logo';
 import MenuButton from './MenuButton';
 import Menu from './Menu';
+import { useAuth } from '../misc/useAuth';
 
 function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
-
+  const {isLogged, setIsLogged} = useAuth();
+  console.log(isLogged);
   const menuButtonRef = useRef(null);
   const menuRef = useRef(null);
   const headerRef = useRef(null);
@@ -31,14 +33,15 @@ function Header() {
       window.removeEventListener("scroll", handleScroll);
     };
   }, []);
-
+  //console.log(isLogged ? { href: "/Login", text: "Login"} : {href: "Logout", text: "Logout"});
   const links = [
     { href: "/#", text: "Home" },
     { href: "/Profile", text: "Profile" },
     { href: "/#", text: "Team" },
     { href: "/#", text: "Contact" },
-    { href: "/Login", text: "Login" }
+    isLogged ? {href: "/Login", text: "Logout" } : {href: "/Login", text: "Login" }
   ];
+  
 
   const isMobile = useContext(IsMobileContext);
   const mobileClass = isMobile ? styles.mobile : '';
