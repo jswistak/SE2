@@ -27,7 +27,7 @@ const LoginForm = (props) => {
                     setIsLogged(true);
                     navigate("/");
                 }
-            });        
+            });
     }
 
     return (
