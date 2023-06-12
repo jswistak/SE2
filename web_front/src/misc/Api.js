@@ -23,10 +23,11 @@ export const callApi = (path, method = 'GET', body = null) => {
     if (body) {
       requestOptions.body = JSON.stringify(body);
     }
-  
+    console.log(requestOptions);
     return fetch(endpointUrl, requestOptions)
       .then((response) => {
         if (!response.ok) {
+          console.log(response);
           throw new Error('API request failed');
         }
         return response.json();

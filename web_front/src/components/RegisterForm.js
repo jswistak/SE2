@@ -20,8 +20,7 @@ const RegisterForm = (props) => {
         };
         console.log(JSON.stringify(user));
         // Make a POST request to your backend API
-        callApi("api/register/", "POST", JSON.stringify(user))
-        .then(response => response.json())
+        callApi("api/register/", "POST", user)
         .then(data => {
             // Handle the response from the backend
             console.log(data);
@@ -48,7 +47,7 @@ const RegisterForm = (props) => {
                 <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="email@mail.com" name="email"/>
                 <label htmlFor="password">password</label>
                 <input value={pass} onChange={(e) => setPass(e.target.value)} type="password" placeholder="*******"/>
-                <button type="submit">Log In</button>
+                <button type="submit">Register</button>
             </form>
             <button className="link-btn" onClick={() => props.changeForm('login')}>Already have an account? Login here</button>
         </div>
