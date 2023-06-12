@@ -7,14 +7,24 @@ import HeroImage from './HeroImage';
 import Logo from './Logo';
 import MenuButton from './MenuButton';
 import Menu from './Menu';
+import { useAuth } from '../misc/useAuth';
 
 function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
-
+  const {isLogged, setIsLogged} = useAuth();
+  console.log(isLogged);
   const menuButtonRef = useRef(null);
   const menuRef = useRef(null);
   const headerRef = useRef(null);
+
+  const [links, setLinks] = useState([
+    { href: "/#", text: "Home" },
+    { href: "/Profile", text: "Profile" },
+    { href: "/#", text: "Team" },
+    { href: "/#", text: "Contact" },
+    isLogged ? {href: "/Logout", text: "Logout" } : {href: "/Login", text: "Login" }
+  ]);
 
   const toggleMenu = () => {
     setIsMenuOpen((prevState) => !prevState);
@@ -24,21 +34,28 @@ function Header() {
     const isAtTop = window.scrollY === 0;
     setIsSticky(!isAtTop);
   };
-
+  const updateLinks = () => {
+    setLinks([
+      { href: "/#", text: "Home" },
+      { href: "/Profile", text: "Profile" },
+      { href: "/#", text: "Team" },
+      { href: "/#", text: "Contact" },
+      isLogged ? {href: "/Logout", text: "Logout" } : {href: "/Login", text: "Login" }
+    ]);
+  }
   useEffect(() => {
     window.addEventListener("scroll", handleScroll);
+    updateLinks();
+    console.log("Reloading")
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
+    
   }, []);
-
-  const links = [
-    { href: "/#", text: "Home" },
-    { href: "/Profile", text: "Profile" },
-    { href: "/#", text: "Team" },
-    { href: "/#", text: "Contact" },
-    { href: "/Login", text: "Login" }
-  ];
+  
+  //console.log(isLogged ? { href: "/Login", text: "Login"} : {href: "Logout", text: "Logout"});
+  
+  
 
   const isMobile = useContext(IsMobileContext);
   const mobileClass = isMobile ? styles.mobile : '';
