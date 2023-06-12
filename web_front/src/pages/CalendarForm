@@ -1,0 +1,22 @@
+import React, { useState } from "react";
+
+const [aircraftId, setAircraftId] = useState('');
+const [pilotId, setPilotId] = useState('');
+const [instructorId, setInstructorId] = useState('');
+
+return (
+    <div>
+        <form onSubmit={bookDay}>
+            <label htmlFor="aircraftId">Aircraft ID</label>
+            <input id="aircraftId" value={aircraftId} onChange={(e) => setAircraftId(e.target.value)} />
+            
+            <label htmlFor="pilotId">Pilot ID</label>
+            <input id="pilotId" value={pilotId} onChange={(e) => setPilotId(e.target.value)} />
+
+            <label htmlFor="instructorId">Instructor ID</label>
+            <input id="instructorId" value={instructorId} onChange={(e) => setInstructorId(e.target.value)} />
+            
+            <button type="submit">Book</button>
+        </form>
+    </div>
+);
