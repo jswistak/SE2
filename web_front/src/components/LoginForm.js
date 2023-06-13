@@ -6,8 +6,8 @@ import { useAuth } from "../misc/useAuth";
 
 const LoginForm = (props) => {
     const [username, setUsername] = useState('');
-    const [pass, setPass] = useState('');
-    const {isLogged, setIsLogged} = useAuth();
+    const [password, setPass] = useState('');
+    const {isLogged, setIsLogged, profile, updateProfile} = useAuth();
     const navigate = useNavigate();
 
     const handleSubmit = (e) => {
@@ -15,7 +15,7 @@ const LoginForm = (props) => {
         console.log(username);
         const body = {
             username: username,
-            password: pass
+            password: password
         }
         callApi("api/login/", "POST", body)
             .then(response => {
@@ -25,8 +25,13 @@ const LoginForm = (props) => {
                     Cookies.set("refreshToken", refresh);
                     Cookies.set("accessToken", access);
                     setIsLogged(true);
-                    navigate("/");
+                    updateProfile({ username, password});
+                    console.log(profile);
+                    navigate("/#");
                 }
+            })
+            .catch((error) => {
+                alert("Failed to log in");
             });
     }
 
@@ -37,7 +42,7 @@ const LoginForm = (props) => {
                 <label htmlFor="username">username</label>
                 <input value={username} onChange={(e) => setUsername(e.target.value)} type="username" placeholder="username" name="username"/>
                 <label htmlFor="password">password</label>
-                <input value={pass} onChange={(e) => setPass(e.target.value)} type="password" placeholder="*******"/>
+                <input value={password} onChange={(e) => setPass(e.target.value)} type="password" placeholder="*******"/>
                 <button type="submit">Log In</button>
             </form>
             <button className="link-btn" onClick={() => props.changeForm('register')}>Don't have an account? Register here</button>
