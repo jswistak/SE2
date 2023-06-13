@@ -20,9 +20,9 @@ function Header(props) {
 
   const [links, setLinks] = useState([
     { href: "/#", text: "Home" },
-    { href: "/Profile", text: "Profile" },
+    { href: "/#", text: "Team" },
     { href: "/Contact", text: "Contact" },
-    isLogged ? {href: "/Logout", text: "Logout" } : {href: "/Login", text: "Login" }
+    { href: "/Login", text: "Login" }
   ]);
 
   const toggleMenu = () => {
@@ -34,12 +34,23 @@ function Header(props) {
     setIsSticky(!isAtTop);
   };
   const updateLinks = () => {
-    setLinks([
-      { href: "/#", text: "Home" },
-      { href: "/Profile", text: "Profile" },
-      { href: "/Contact", text: "Contact" },
-      isLogged ? {href: "/Logout", text: "Logout" } : {href: "/Login", text: "Login" }
-    ]);
+    if (isLogged) {
+      setLinks([
+        { href: "/#", text: "Home" },
+        { href: "/Profile", text: "Profile" },
+        { href: "/#", text: "Team" },
+        { href: "/Contact", text: "Contact" },
+        {href: "/Logout", text: "Logout" }
+      ]);
+    } else {
+      setLinks([
+        { href: "/#", text: "Home" },
+        { href: "/#", text: "Team" },
+        { href: "/Contact", text: "Contact" },
+        { href: "/Login", text: "Login" }
+      ])
+    }
+    
   }
   useEffect(() => {
     window.addEventListener("scroll", handleScroll);
