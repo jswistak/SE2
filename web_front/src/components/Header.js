@@ -9,9 +9,9 @@ import MenuButton from './MenuButton';
 import Menu from './Menu';
 import { useAuth } from '../misc/useAuth';
 
-function Header() {
+function Header(props) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isSticky, setIsSticky] = useState(false);
+  const [isSticky, setIsSticky] = useState(props.sticky ? props.sticky : false);
   const {isLogged, setIsLogged} = useAuth();
   console.log(isLogged);
   const menuButtonRef = useRef(null);
@@ -21,8 +21,7 @@ function Header() {
   const [links, setLinks] = useState([
     { href: "/#", text: "Home" },
     { href: "/Profile", text: "Profile" },
-    { href: "/#", text: "Team" },
-    { href: "/#", text: "Contact" },
+    { href: "/Contact", text: "Contact" },
     isLogged ? {href: "/Logout", text: "Logout" } : {href: "/Login", text: "Login" }
   ]);
 
@@ -38,8 +37,7 @@ function Header() {
     setLinks([
       { href: "/#", text: "Home" },
       { href: "/Profile", text: "Profile" },
-      { href: "/#", text: "Team" },
-      { href: "/#", text: "Contact" },
+      { href: "/Contact", text: "Contact" },
       isLogged ? {href: "/Logout", text: "Logout" } : {href: "/Login", text: "Login" }
     ]);
   }
@@ -66,29 +64,31 @@ function Header() {
 
 
   return (
-    <header className={headerClass} ref={headerRef}>
-      <HeroImage className={heroClass} src={hero} />
-      <Logo className={logoClass} background="white" phrase="Roam!" />
-      <Menu
-        links={links}
-        isMenuOpen={isMenuOpen}
-        isSticky={isSticky}
-        menuRef={menuRef}
-        menuButton={
-          <MenuButton
-            isMenuOpen={isMenuOpen}
-            isSticky={isSticky}
-            toggleMenu={toggleMenu}
-            menuButtonRef={menuButtonRef}
-            position={{ top: '15px', right: '40px' }}
-            isMobileOnly={true}
-          />
-        }
-      />
+    <>
+      <header className={headerClass} ref={headerRef}>
+        <HeroImage className={heroClass} src={hero} />
+        <Logo className={logoClass} background="white" phrase="Roam!" />
+        <Menu
+          links={links}
+          isMenuOpen={isMenuOpen}
+          isSticky={isSticky}
+          menuRef={menuRef}
+          menuButton={
+            <MenuButton
+              isMenuOpen={isMenuOpen}
+              isSticky={isSticky}
+              toggleMenu={toggleMenu}
+              menuButtonRef={menuButtonRef}
+              position={{ top: '15px', right: '40px' }}
+              isMobileOnly={true}
+            />
+          }
+        />
+      </header>
       <div className={styles['margin-bottom']}>
         {/* Header is position fixed. Necessary to independently set the baseline margin for other elements in the document flow */}
       </div>
-    </header>
+    </>
   );
 }
 
