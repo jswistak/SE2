@@ -46,4 +46,5 @@ urlpatterns = [
 
     path('api/register/', views.RegisterView.as_view(), name='register'),
     path('status/', views.status, name='status'),
+    #path('calendar/',views.BookingViewSet, name='calendar'),
 ]

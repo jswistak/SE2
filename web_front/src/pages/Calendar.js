@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import styles from './Calendar.module.css';
-import { callApi } from './api';
+import { callApi } from "../misc/Api";
+
 
 const Calendar = () => {
     const currentDate = new Date();
@@ -36,13 +37,29 @@ const Calendar = () => {
     };
 
     const bookDay = (day) => {
-        // TODO: Replace this with a call to your API endpoint for booking, and handle the response accordingly.
-        // Replace this with actual description of user and/or flight/aircraft
-        const eventTitle = 'Sample Event';
-        const eventDescription = 'This is a sample event description.';
-        setBookedDays({
-            ...bookedDays,
-            [day]: { title: eventTitle, description: eventDescription },
+        const startTime = new Date(currentYear, currentMonth, day, 9, 0, 0).toISOString();
+    const endTime = new Date(currentYear, currentMonth, day, 11, 0, 0).toISOString();
+
+    const bookingData = {
+        aircraft: aircraftId,
+        pilot: pilotId,
+        instructor: instructorId,
+        start_time: startTime,
+        end_time: endTime,
+    };
+
+    callApi('api/booking/', 'POST', bookingData)
+        .then(data => {
+            //Update the bookedDays state with the new booking.
+            const eventTitle = `${data.aircraft.aircraft_id} - ${data.start_time} - ${data.end_time}`;
+            const eventDescription = `Pilot: ${data.pilot.username}\nInstructor: ${data.instructor.username}`;
+            setBookedDays({
+                ...bookedDays,
+                [day]: { title: eventTitle, description: eventDescription },
+            });
+        })
+        .catch((error) => {
+            console.error('Error:', error);
         });
     };
 
