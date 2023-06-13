@@ -10,6 +10,7 @@
     justify-content: flex-end;
     align-items: center;
     transition: 1s;
+    z-index: 100;
 }
 
 .header .hero {
@@ -63,6 +64,7 @@ header.sticky .hero.mobile {
     opacity: 0;
 }
 
-header .margin-bottom {
-    margin-top: calc(var(--navbar-height) + 10vh)
+.margin-bottom {
+    /* margin-top: calc(var(--navbar-height) + 10vh) */
+    padding-top: calc(var(--navbar-height) + 10vh)
 }

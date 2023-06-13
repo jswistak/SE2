@@ -1,0 +1,63 @@
+.form {
+    display: flex;
+    flex-direction: column;
+    width: 80%;
+    margin: 0 auto;
+    max-width: 600px;
+}
+
+.inputGroup {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.inputField, .textarea {
+    width: 100%;
+    padding: 20px 10px 10px;
+    border: none;
+    border-bottom: 1px solid #ddd;
+    outline: none;
+    transition: border-bottom-color 0.25s ease-in;
+}
+
+.inputField:focus, .textarea:focus {
+    border-bottom-color: #007BFF;
+}
+
+.inputField.hasValue + .inputLabel, .textarea.hasValue + .inputLabel,
+.inputField:focus + .inputLabel, .textarea:focus + .inputLabel {
+    transform: translateY(-26px);
+    font-size: 14px;
+    color: #007BFF;
+}
+
+.inputLabel {
+    position: absolute;
+    left: 10px;
+    bottom: 11px;
+    font-size: 16px;
+    color: #999;
+    transition: all 0.25s ease-in;
+}
+
+.textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.submitButton {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    background-color: #007BFF;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.25s ease-in;
+}
+
+.submitButton:hover {
+    background-color: #0069d9;
+}

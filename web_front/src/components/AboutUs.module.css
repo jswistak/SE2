@@ -1,0 +1,42 @@
+.parallax {
+    /* The image used */
+    background-image: url("../resources/images/photo-clouds.jpg");
+
+    /* Set a specific height */
+    height: 600px;
+
+    /* Create the parallax scrolling effect */
+    background-attachment: fixed;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    border-radius: 10px;
+
+    /* Set up a flex container to center the content vertically and horizontally */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    margin-right: auto;
+    margin-left: auto;
+    width: 85%;
+}
+
+.content {
+    text-align: center;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    z-index: 1;
+    position: relative;
+}
+
+.content h2 {
+    font-size: 3em;
+    margin-bottom: 20px;
+}
+
+.content p {
+    font-size: 1.5em;
+    max-width: 700px;
+    margin: auto;
+}

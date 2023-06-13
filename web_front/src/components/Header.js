@@ -21,7 +21,7 @@ function Header(props) {
   const [links, setLinks] = useState([
     { href: "/#", text: "Home" },
     { href: "/#", text: "Team" },
-    { href: "/#", text: "Contact" },
+    { href: "/Contact", text: "Contact" },
     { href: "/Login", text: "Login" }
   ]);
 
@@ -39,14 +39,14 @@ function Header(props) {
         { href: "/#", text: "Home" },
         { href: "/Profile", text: "Profile" },
         { href: "/#", text: "Team" },
-        { href: "/#", text: "Contact" },
+        { href: "/Contact", text: "Contact" },
         {href: "/Logout", text: "Logout" }
       ]);
     } else {
       setLinks([
         { href: "/#", text: "Home" },
         { href: "/#", text: "Team" },
-        { href: "/#", text: "Contact" },
+        { href: "/Contact", text: "Contact" },
         { href: "/Login", text: "Login" }
       ])
     }
@@ -75,29 +75,31 @@ function Header(props) {
 
 
   return (
-    <header className={headerClass} ref={headerRef}>
-      <HeroImage className={heroClass} src={hero} />
-      <Logo className={logoClass} background="white" phrase="Roam!" />
-      <Menu
-        links={links}
-        isMenuOpen={isMenuOpen}
-        isSticky={isSticky}
-        menuRef={menuRef}
-        menuButton={
-          <MenuButton
-            isMenuOpen={isMenuOpen}
-            isSticky={isSticky}
-            toggleMenu={toggleMenu}
-            menuButtonRef={menuButtonRef}
-            position={{ top: '15px', right: '40px' }}
-            isMobileOnly={true}
-          />
-        }
-      />
+    <>
+      <header className={headerClass} ref={headerRef}>
+        <HeroImage className={heroClass} src={hero} />
+        <Logo className={logoClass} background="white" phrase="Roam!" />
+        <Menu
+          links={links}
+          isMenuOpen={isMenuOpen}
+          isSticky={isSticky}
+          menuRef={menuRef}
+          menuButton={
+            <MenuButton
+              isMenuOpen={isMenuOpen}
+              isSticky={isSticky}
+              toggleMenu={toggleMenu}
+              menuButtonRef={menuButtonRef}
+              position={{ top: '15px', right: '40px' }}
+              isMobileOnly={true}
+            />
+          }
+        />
+      </header>
       <div className={styles['margin-bottom']}>
         {/* Header is position fixed. Necessary to independently set the baseline margin for other elements in the document flow */}
       </div>
-    </header>
+    </>
   );
 }
 

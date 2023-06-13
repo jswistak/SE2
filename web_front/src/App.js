@@ -5,6 +5,7 @@ import useIsMobile from './misc/useIsMobile';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import ProfilePage from './pages/ProfilePage';
+import ContactPage from './pages/ContactPage';
 import LogoutPage from './pages/LogoutPage';
 
 
@@ -21,6 +22,7 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/Login" element={<LoginPage currentForm='login' />} />
         <Route path="/Profile" element={<ProfilePage />} />
+        <Route path="/Contact" element={<ContactPage />} />
         <Route path="/Logout" element={<LogoutPage/>} />
       </Routes>
     </IsMobileContext.Provider>
