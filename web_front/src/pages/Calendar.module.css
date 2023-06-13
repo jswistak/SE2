@@ -1,0 +1,75 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0eef9;
+}
+
+.calendar {
+    display: inline-grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    background-color: violet;
+    padding: 1px;
+}
+
+.calendar-day {
+    width: 100px;
+    height: 100px;
+    background-color: #e6ccff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+    .calendar-day.booked {
+        background-color: #b19cd9;
+    }
+
+        .calendar-day.booked::after {
+            content: "Booked";
+            position: absolute;
+            bottom: 5px;
+            font-size: 12px;
+            color: white;
+        }
+
+.navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+    .navigation span {
+        font-size: 1.5em;
+        font-weight: bold;
+    }
+
+    .navigation button {
+        background-color: violet;
+        border: none;
+        color: white;
+        font-size: 1.5em;
+        cursor: pointer;
+        padding: 5px 10px;
+    }
+
+.tooltip {
+    visibility: hidden;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    text-align: center;
+    padding: 5px;
+    border-radius: 5px;
+    position: absolute;
+    z-index: 1;
+    bottom: 110%;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    font-size: 12px;
+}
+
+.calendar-day:hover .tooltip {
+    visibility: visible;
+}

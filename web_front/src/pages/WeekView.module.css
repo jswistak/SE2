@@ -1,0 +1,20 @@
+.week {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.event {
+    background-color: violet;
+    padding: 10px;
+    border-radius: 5px;
+    color: white;
+    width: 100%;
+}
+
+.day,
+.time,
+.title,
+.description {
+    margin-bottom: 5px;
+}
