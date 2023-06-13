@@ -9,9 +9,9 @@ import MenuButton from './MenuButton';
 import Menu from './Menu';
 import { useAuth } from '../misc/useAuth';
 
-function Header() {
+function Header(props) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isSticky, setIsSticky] = useState(false);
+  const [isSticky, setIsSticky] = useState(props.sticky ? props.sticky : false);
   const {isLogged, setIsLogged} = useAuth();
   console.log(isLogged);
   const menuButtonRef = useRef(null);
@@ -20,10 +20,9 @@ function Header() {
 
   const [links, setLinks] = useState([
     { href: "/#", text: "Home" },
-    { href: "/Profile", text: "Profile" },
     { href: "/#", text: "Team" },
     { href: "/#", text: "Contact" },
-    isLogged ? {href: "/Logout", text: "Logout" } : {href: "/Login", text: "Login" }
+    { href: "/Login", text: "Login" }
   ]);
 
   const toggleMenu = () => {
@@ -35,13 +34,23 @@ function Header() {
     setIsSticky(!isAtTop);
   };
   const updateLinks = () => {
-    setLinks([
-      { href: "/#", text: "Home" },
-      { href: "/Profile", text: "Profile" },
-      { href: "/#", text: "Team" },
-      { href: "/#", text: "Contact" },
-      isLogged ? {href: "/Logout", text: "Logout" } : {href: "/Login", text: "Login" }
-    ]);
+    if (isLogged) {
+      setLinks([
+        { href: "/#", text: "Home" },
+        { href: "/Profile", text: "Profile" },
+        { href: "/#", text: "Team" },
+        { href: "/#", text: "Contact" },
+        {href: "/Logout", text: "Logout" }
+      ]);
+    } else {
+      setLinks([
+        { href: "/#", text: "Home" },
+        { href: "/#", text: "Team" },
+        { href: "/#", text: "Contact" },
+        { href: "/Login", text: "Login" }
+      ])
+    }
+    
   }
   useEffect(() => {
     window.addEventListener("scroll", handleScroll);
